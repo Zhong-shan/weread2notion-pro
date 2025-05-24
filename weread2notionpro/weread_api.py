@@ -8,6 +8,9 @@ from requests.utils import cookiejar_from_dict
 from retrying import retry
 from urllib.parse import quote
 from dotenv import load_dotenv
+import os
+from dotenv import load_dotenv
+
 
 load_dotenv()
 WEREAD_URL = "https://weread.qq.com/"
@@ -25,7 +28,7 @@ class WeReadApi:
     def __init__(self):
         self.cookie = self.get_cookie()
         self.session = requests.Session()
-        self.session.cookies = self.parse_cookie_string()
+        self.session.cookies.update(self.parse_cookie_string())
 
     def try_get_cloud_cookie(self, url, id, password):
         if url.endswith("/"):
@@ -56,29 +59,29 @@ class WeReadApi:
             raise Exception("没有找到cookie，请按照文档填写cookie")
         return cookie
 
-    # def parse_cookie_string(self):
-    #     cookies_dict = {}
-        
-    #     # 使用正则表达式解析 cookie 字符串
-    #     pattern = re.compile(r'([^=]+)=([^;]+);?\s*')
-    #     matches = pattern.findall(self.cookie)
-        
-    #     for key, value in matches:
-    #         cookies_dict[key] = value.encode('unicode_escape').decode('ascii')
-    #     # 直接使用 cookies_dict 创建 cookiejar
-    #     cookiejar = cookiejar_from_dict(cookies_dict)
-        
-    #     return cookiejar
-
     def parse_cookie_string(self):
         cookies_dict = {}
-        # 直接按分号和空格分割 Cookie
-        for cookie in self.cookie.split('; '):
-            if '=' in cookie:
-                key, value = cookie.split('=', 1)  # 仅分割第一个等号
-                cookies_dict[key.strip()] = value.strip()
-        print("解析后的 Cookies:", cookies_dict)  # 调试日志
-        return cookiejar_from_dict(cookies_dict)
+        
+        # 使用正则表达式解析 cookie 字符串
+        pattern = re.compile(r'([^=]+)=([^;]+);?\s*')
+        matches = pattern.findall(self.cookie)
+        
+        for key, value in matches:
+            cookies_dict[key] = value.encode('unicode_escape').decode('ascii')
+        # 直接使用 cookies_dict 创建 cookiejar
+        cookiejar = cookiejar_from_dict(cookies_dict)
+        
+        return cookiejar
+
+    # def parse_cookie_string(self):
+    #     cookies_dict = {}
+    #     # 直接按分号和空格分割 Cookie
+    #     for cookie in self.cookie.split('; '):
+    #         if '=' in cookie:
+    #             key, value = cookie.split('=', 1)  # 仅分割第一个等号
+    #             cookies_dict[key.strip()] = value.strip()
+    #     print("解析后的 Cookies:", cookies_dict)  # 调试日志
+    #     return cookiejar_from_dict(cookies_dict)
 
     def get_bookshelf(self):
         self.session.get(WEREAD_URL)
